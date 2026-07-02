@@ -1,7 +1,7 @@
 {
   "name": "Aftermath",
   "short_name": "Aftermath",
-  "description": "Your own words, when they matter — meet yourself at the moment a bad habit is about to win.",
+  "description": "Your own words, when they matter. Meet yourself at the moment a bad habit is about to win.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

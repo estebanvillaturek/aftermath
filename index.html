@@ -10,7 +10,7 @@
 <link rel="manifest" href="./manifest.webmanifest"/>
 <link rel="apple-touch-icon" href="./apple-touch-icon.png"/>
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"/>
-<title>Aftermath — your own words, when they matter</title>
+<title>Aftermath: your own words, when they matter</title>
 <style>
   :root{
     --bg:#0b0d12;
@@ -412,10 +412,10 @@ const MOODW  = {1:"fine",2:"okay",3:"rough",4:"bad",5:"awful"};
 const EMOJIS = ["📱","🚬","🍷","🥃","🍔","🍩","🍫","🛒","💸","🎰","🎮","😤","🛌","☕","💊","👆","🖥️","🌙"];
 const EXCUSES = ["I'm tired","I don't want to","Just this once","I've earned it","Too stressed","Everyone's doing it"];
 const ESCALATION = [
-  {h:"Wait. Before you do —", l:"past-you left something here for exactly this moment."},
-  {h:"It came back. So did I.", l:"One snooze down. That's fine. Read it one more time — slowly."},
+  {h:"Wait. Before you do.", l:"Past-you left something here for exactly this moment."},
+  {h:"It came back. So did I.", l:"One snooze down. That's fine. Read it one more time, slowly."},
   {h:"Third time tonight.", l:"The urge keeps knocking. Your own words keep answering. Listen to them."},
-  {h:"Still here. Still true.", l:"You can snooze me all night — the aftermath doesn't expire."},
+  {h:"Still here. Still true.", l:"You can snooze me all night. The aftermath doesn't expire."},
   {h:"However long it takes.", l:"I'll keep showing up with the receipts. You wrote them yourself."}
 ];
 
@@ -450,7 +450,7 @@ function renderHome(){
   root.appendChild(el(`
     <div class="hero">
       <h2>Meet yourself at the moment.</h2>
-      <p>When a habit is about to win, open it here. You'll read — in your own words — exactly how it felt afterward last time. Then you decide.</p>
+      <p>When a habit is about to win, open it here. You'll read, in your own words, exactly how it felt afterward last time. Then you decide.</p>
     </div>`));
 
   if(!state.habits.length){
@@ -458,7 +458,7 @@ function renderHome(){
       <div class="empty">
         <div class="big">🪞</div>
         <b>Nothing tracked yet.</b>
-        <p>Add the habit that keeps winning.<br/>You'll write one honest note about its aftermath —<br/>and that note will meet you at the next urge.</p>
+        <p>Add the habit that keeps winning.<br/>You'll write one honest note about its aftermath,<br/>and that note will meet you at the next urge.</p>
       </div>`));
     return;
   }
@@ -497,7 +497,7 @@ function renderHome(){
         ${rateHtml}
         <div class="actions">
           ${snz
-            ? `<button class="btn soft" data-act="face">⏰ Face it now — skip the snooze</button>`
+            ? `<button class="btn soft" data-act="face">⏰ Face it now, skip the snooze</button>`
             : `<button class="btn danger" data-act="trigger">⚡ It's happening</button>`}
         </div>
       </div>`);
@@ -557,7 +557,7 @@ function openWizard(){
       <div class="emoji-picker" id="epick">
         ${EMOJIS.map(x=>`<button data-e="${x}" class="${x===emoji?"sel":""}">${x}</button>`).join("")}
       </div>
-      <p class="hint">No judgment here. You're not quitting anything today — you're just installing a mirror at the door.</p>`;
+      <p class="hint">No judgment here. You're not quitting anything today. You're just installing a mirror at the door.</p>`;
     $("#wizFoot",scr).innerHTML = `
       <button class="btn soft" data-close style="flex:0 0 110px">Cancel</button>
       <button class="btn primary" id="next1">Next →</button>`;
@@ -579,7 +579,7 @@ function openWizard(){
     let mood=4;
     $("#stepBox",scr).innerHTML = `
       <label class="field" style="font-size:15px;color:var(--text)">Think back to the last time ${esc(name.toLowerCase())} won.</label>
-      <p class="hint" style="margin-top:0">How did you feel <i>afterward</i>? Be specific and honest — this exact sentence is what future-you will read at the next urge. Give them something real.</p>
+      <p class="hint" style="margin-top:0">How did you feel <i>afterward</i>? Be specific and honest: this exact sentence is what future-you will read at the next urge. Give them something real.</p>
       <textarea id="ftext" placeholder="e.g. Wired till 3am, hated myself, dragged through the whole next day like a ghost…"></textarea>
       <label class="field">How bad did it feel?</label>
       <div class="mood-scale" id="mscale">
@@ -603,8 +603,8 @@ function openWizard(){
       }
       state.habits.push(h); save(); closeScr(scr); renderHome();
       banner("🜂", withRefl
-        ? "Armed. Next time <b>"+esc(name)+"</b> knocks, hit <b>⚡ It's happening</b> — your words will be waiting."
-        : "Tracking <b>"+esc(name)+"</b>. Add a reflection when you can — that's the ammunition.");
+        ? "Armed. Next time <b>"+esc(name)+"</b> knocks, hit <b>⚡ It's happening</b> and your words will be waiting."
+        : "Tracking <b>"+esc(name)+"</b>. Add a reflection when you can. That's the ammunition.");
     }
     $("#saveWiz",scr).addEventListener("click", ()=>finish(true));
     $("#skipRefl",scr).addEventListener("click", ()=>finish(false));
@@ -634,10 +634,10 @@ function openIntervention(habitId, snoozeCount=0, excuses=[]){
 
   const quotesHtml = refl.length
     ? top.map(quoteHtml).join("") + (restCount>0 ? `<button class="showmore" data-more>Show ${restCount} more reflection${restCount>1?"s":""}</button>` : "")
-    : `<div class="note-box center">No reflections yet for this one.<br/><b>Whatever happens next, you'll get to write it down</b> — and next time won't start from zero.</div>`;
+    : `<div class="note-box center">No reflections yet for this one.<br/><b>Whatever happens next, you'll get to write it down</b>, and next time won't start from zero.</div>`;
 
   const excuseHtml = lastExcuse && snoozeCount>0
-    ? `<div class="excuse-callout">You told me: <b>“${esc(lastExcuse)}”</b> — that was ${snoozeCount>1?"a few snoozes":"a snooze"} ago. Excuses fade. Read how the other thing felt:</div>`
+    ? `<div class="excuse-callout">You told me: <b>“${esc(lastExcuse)}”</b>. That was ${snoozeCount>1?"a few snoozes":"a snooze"} ago. Excuses fade. Read how the other thing felt:</div>`
     : "";
 
   const scr = el(`
@@ -658,7 +658,7 @@ function openIntervention(habitId, snoozeCount=0, excuses=[]){
         <div class="divider"></div>
         <div class="choice-grid">
           <button class="btn good block" data-i="resist">🛡️ I'm walking away</button>
-          <button class="btn soft block" data-i="snooze">😮‍💨 Not now — snooze me</button>
+          <button class="btn soft block" data-i="snooze">😮‍💨 Not now, snooze me</button>
           <button class="btn danger block" data-i="slip">💥 I did it anyway</button>
         </div>
         <div class="tinystats">
@@ -666,7 +666,7 @@ function openIntervention(habitId, snoozeCount=0, excuses=[]){
           <span>slipped <b>${c.s}</b></span><span>·</span>
           <span>honesty is the whole game</span>
         </div>
-        <p class="hint center" style="margin-top:10px">Every answer is safe here. This is data for you — not a judge.</p>
+        <p class="hint center" style="margin-top:10px">Every answer is safe here. This is data for you, not a judge.</p>
       </div>
     </div>`);
 
@@ -699,12 +699,12 @@ function openSnooze(habitId, snoozeCount, excuses){
   const scr = el(`
     <div class="screen">
       <header>
-        <p class="htitle">Okay — hit snooze</p>
+        <p class="htitle">Okay, hit snooze</p>
         <button class="icon-btn" data-close>✕</button>
       </header>
       <div class="body">
-        <div class="note-box">Fine. Like an alarm, this comes back — and when it does, it brings <b>your own words</b> with it. It doesn't get tired. It doesn't get offended. It just returns.</div>
-        <label class="field">What's the reason this time? <span style="color:var(--faint);font-weight:500">(optional — it'll be quoted back to you)</span></label>
+        <div class="note-box">Fine. Like an alarm, this comes back, and when it does it brings <b>your own words</b> with it. It doesn't get tired. It doesn't get offended. It just returns.</div>
+        <label class="field">What's the reason this time? <span style="color:var(--faint);font-weight:500">(optional, it'll be quoted back to you)</span></label>
         <div class="chips" id="xchips">
           ${EXCUSES.map(x=>`<button data-x="${esc(x)}">${esc(x)}</button>`).join("")}
         </div>
@@ -716,7 +716,7 @@ function openSnooze(habitId, snoozeCount, excuses){
           <button data-min="15">15 min</button>
           <button data-min="30">30 min</button>
         </div>
-        <p class="hint">Works even if you close this — the reminder is waiting the moment you reopen. Tap 🔔 up top once to also get a real notification while the app is open in the background.</p>
+        <p class="hint">Works even if you close this. The reminder is waiting the moment you reopen. Tap 🔔 up top once to also get a real notification while the app is open in the background.</p>
       </div>
     </div>`);
 
@@ -740,7 +740,7 @@ function openSnooze(habitId, snoozeCount, excuses){
     removePending(p=>p.habitId===habitId && p.kind==="snooze");
     state.pending.push({id:uid(), habitId, kind:"snooze", dueTs:now()+mins*60000, count:snoozeCount+1, excuses:newExcuses});
     save(); closeScr(scr); renderHome();
-    banner("😮‍💨","Snoozed <b>"+mins+" min</b>"+(excuse?" — noted: <b>“"+esc(excuse)+"”</b>":"")+". I'll bring the feeling back.");
+    banner("😮‍💨","Snoozed <b>"+mins+" min</b>"+(excuse?". Noted: <b>“"+esc(excuse)+"”</b>":"")+". I'll bring the feeling back.");
   });
   bindClose(scr); mount(scr);
 }
@@ -756,7 +756,7 @@ function openAftermath(habitId){
         <button class="icon-btn" data-close>✕</button>
       </header>
       <div class="body">
-        <p class="hint" style="font-size:13.5px;margin-top:6px">No shame — you showed up and told the truth, which is more than most. Now capture the aftermath <b style="color:var(--text)">while it's raw</b>. This exact sentence meets future-you at the next urge.</p>
+        <p class="hint" style="font-size:13.5px;margin-top:6px">No shame. You showed up and told the truth, which is more than most. Now capture the aftermath <b style="color:var(--text)">while it's raw</b>. This exact sentence meets future-you at the next urge.</p>
         <label class="field">How does it feel, in your own words?</label>
         <textarea id="atext" placeholder="e.g. That gross heavy feeling again. Money gone, night gone, and tomorrow-me pays for all of it…"></textarea>
         <label class="field">How bad?</label>
@@ -805,7 +805,7 @@ function openAftermath(habitId){
   scr.addEventListener("click", e=>{
     if(e.target.closest("[data-skip]")){
       scheduleCheckin(); save(); closeScr(scr); renderHome();
-      if(checkMins>0) banner("🕯️","Okay. I'll still check on you in "+checkMins+" min — the words can come then.");
+      if(checkMins>0) banner("🕯️","Okay. I'll still check on you in "+checkMins+" min. The words can come then.");
     }
   });
   bindClose(scr); mount(scr);
@@ -847,14 +847,14 @@ function openCheckin(habitId){
     if(!text){ $("#ctext",scr).focus(); return; }
     h.reflections.push({id:uid(), ts:now(), text, mood, kind:"checkin"});
     save(); closeScr(scr); renderHome();
-    banner("🜂","Filed. The arsenal grows — future-you says thanks.");
+    banner("🜂","Filed. The arsenal grows. Future-you says thanks.");
   });
   scr.addEventListener("click", e=>{
     if(e.target.closest("[data-later]")){
       removePending(p=>p.habitId===habitId && p.kind==="checkin");
       state.pending.push({id:uid(), habitId, kind:"checkin", dueTs:now()+45*60000, count:0, excuses:[]});
       save(); closeScr(scr); renderHome();
-      banner("🕯️","Alright — and so on, and so on. Back in 45.");
+      banner("🕯️","Alright. And so on, and so on. Back in 45.");
     }
   });
   bindClose(scr); mount(scr);
@@ -872,7 +872,7 @@ function openWin(h){
       <div class="body win-body">
         <div class="win-emoji">🛡️</div>
         <h2>You read it. You walked.</h2>
-        <p>The urge showed up with its usual pitch — and past-you was standing at the door with receipts. That's the whole game, and you just won a round.</p>
+        <p>The urge showed up with its usual pitch, and past-you was standing at the door with receipts. That's the whole game, and you just won a round.</p>
         ${streakLine}
         <div style="height:26px"></div>
         <button class="btn good block" data-close style="max-width:280px">Feels better than the habit</button>
@@ -900,7 +900,7 @@ function openMenu(id){
         <div class="stat-row" style="margin-top:8px">
           <div class="stat"><div class="n" style="color:var(--mint)">${c.r}</div><div class="l">Resisted</div></div>
           <div class="stat"><div class="n" style="color:var(--ember)">${c.s}</div><div class="l">Slipped</div></div>
-          <div class="stat"><div class="n" style="color:var(--indigo)">${rate===null?"–":rate+"%"}</div><div class="l">Held</div></div>
+          <div class="stat"><div class="n" style="color:var(--indigo)">${rate===null?"·":rate+"%"}</div><div class="l">Held</div></div>
         </div>
         <div class="choice-grid" style="margin-top:10px">
           <button class="btn soft block" data-m="ammo">🜂 Add ammunition (write a reflection)</button>
@@ -934,7 +934,7 @@ function openAmmo(habitId){
     <div class="screen">
       <header><p class="htitle">Add ammunition</p><button class="icon-btn" data-close>✕</button></header>
       <div class="body">
-        <p class="hint" style="margin-top:6px;font-size:13.5px">Describe how <b style="color:var(--text)">${esc(h.name.toLowerCase())}</b> leaves you feeling afterward — the crash, the cost, the morning after. Future-you reads this at the door.</p>
+        <p class="hint" style="margin-top:6px;font-size:13.5px">Describe how <b style="color:var(--text)">${esc(h.name.toLowerCase())}</b> leaves you feeling afterward: the crash, the cost, the morning after. Future-you reads this at the door.</p>
         <label class="field">In your own words</label>
         <textarea id="mtext" placeholder="The more specific, the more it lands…"></textarea>
         <label class="field">How bad does it get?</label>
@@ -1034,7 +1034,7 @@ function openSettings(){
           <button class="btn soft block" data-s="import">⬆️ Import backup</button>
           <button class="btn soft block" data-s="wipe" style="color:var(--ember)">🧨 Erase everything</button>
         </div>
-        <p class="hint" style="margin-top:16px">Tip: on a phone, use your browser's <b>“Add to Home Screen”</b> — Aftermath becomes a one-tap app right when you need it.</p>
+        <p class="hint" style="margin-top:16px">Tip: on a phone, use your browser's <b>“Add to Home Screen”</b> and Aftermath becomes a one-tap app right when you need it.</p>
       </div>
     </div>`);
   scr.addEventListener("click", async e=>{
@@ -1081,12 +1081,12 @@ $("#importFile").addEventListener("change", e=>{
 
 /* ================= notifications ================= */
 async function askNotif(){
-  if(!("Notification" in window)){ banner("🔕","This browser can't do notifications — in-app reminders still work fully."); return; }
+  if(!("Notification" in window)){ banner("🔕","This browser can't do notifications, but in-app reminders still work fully."); return; }
   if(Notification.permission==="granted"){ banner("🔔","Already on. Snoozes will buzz you back."); refreshNotifBtn(); return; }
   const p = await Notification.requestPermission();
   refreshNotifBtn();
-  if(p==="granted") banner("🔔","On. When a snooze comes due, I'll tap you on the shoulder — even from a background tab.");
-  else banner("🔕","No problem — reminders still fire in-app the moment you're back.");
+  if(p==="granted") banner("🔔","On. When a snooze comes due, I'll tap you on the shoulder, even from a background tab.");
+  else banner("🔕","No problem. Reminders still fire in-app the moment you're back.");
 }
 function refreshNotifBtn(){
   $("#notifBtn").classList.toggle("on", ("Notification" in window) && Notification.permission==="granted");
@@ -1096,7 +1096,7 @@ function fireNotification(p){
   if(!("Notification" in window) || Notification.permission!=="granted") return;
   try{
     const worst = [...h.reflections].sort((a,b)=>b.mood-a.mood)[0];
-    const title = p.kind==="snooze" ? "⏰ It's back — "+h.name : "🕯️ Check-in — "+h.name;
+    const title = p.kind==="snooze" ? "⏰ It's back: "+h.name : "🕯️ Check-in: "+h.name;
     const body = p.kind==="snooze"
       ? (worst ? "“"+worst.text.slice(0,140)+"”" : "Snooze is up. Come face it.")
       : "How do you feel now, really? Come write it down.";
@@ -1165,7 +1165,7 @@ refreshNotifBtn();
 renderHome();
 setTimeout(tick, 900);   // overdue reminders confront you the moment you open the app
 if(!state.habits.length){
-  setTimeout(()=>banner("👋","Start with the habit that keeps winning — tap <b>＋ Track a habit</b>."), 800);
+  setTimeout(()=>banner("👋","Start with the habit that keeps winning. Tap <b>＋ Track a habit</b>."), 800);
 }
 </script>
 </body>
