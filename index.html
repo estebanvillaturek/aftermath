@@ -1,0 +1,1172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<meta name="theme-color" content="#0b0d12"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Aftermath"/>
+<link rel="manifest" href="./manifest.webmanifest"/>
+<link rel="apple-touch-icon" href="./apple-touch-icon.png"/>
+<link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png"/>
+<title>Aftermath — your own words, when they matter</title>
+<style>
+  :root{
+    --bg:#0b0d12;
+    --bg-2:#12151d;
+    --card:#171b26;
+    --card-hi:#1e2331;
+    --line:rgba(255,255,255,.07);
+    --line-hi:rgba(255,255,255,.14);
+    --text:#eef1f7;
+    --muted:#8f97ac;
+    --faint:#5c6478;
+    --indigo:#7c8cff;
+    --violet:#a06bff;
+    --ember:#ff5c5c;
+    --rose:#ff4d8d;
+    --mint:#3ddc9b;
+    --amber:#ffb648;
+    --orange:#ff8a5b;
+    --radius:20px;
+    --radius-s:14px;
+    --shadow:0 14px 40px rgba(0,0,0,.45);
+    --serif:'Iowan Old Style','Palatino Linotype',Palatino,Georgia,serif;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{
+    background:
+      radial-gradient(900px 500px at 85% -5%, rgba(124,140,255,.10), transparent 60%),
+      radial-gradient(700px 500px at 0% 10%, rgba(255,77,141,.06), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #app{max-width:540px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column}
+
+  /* ---------- header ---------- */
+  header.top{
+    padding:calc(18px + env(safe-area-inset-top)) 20px 8px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .brand{display:flex;align-items:center;gap:11px}
+  .mark{
+    width:34px;height:34px;border-radius:11px;flex:0 0 auto;
+    background:linear-gradient(140deg,var(--rose),var(--violet));
+    display:grid;place-items:center;font-size:17px;
+    box-shadow:0 4px 18px rgba(255,77,141,.35);
+  }
+  .brand h1{font-size:17px;margin:0;font-weight:800;letter-spacing:-.02em}
+  .brand small{display:block;color:var(--muted);font-size:11px;font-weight:500;letter-spacing:.02em;margin-top:1px}
+  .hbtns{display:flex;gap:8px}
+  .icon-btn{
+    background:var(--card);border:1px solid var(--line);color:var(--muted);
+    width:38px;height:38px;border-radius:12px;font-size:16px;display:grid;place-items:center;cursor:pointer;
+    transition:transform .06s ease;
+  }
+  .icon-btn:active{transform:scale(.92)}
+  .icon-btn.on{color:var(--mint);border-color:rgba(61,220,155,.35)}
+
+  main{flex:1;padding:6px 16px calc(120px + env(safe-area-inset-bottom))}
+
+  /* ---------- hero ---------- */
+  .hero{
+    margin:8px 2px 18px;padding:20px;border-radius:var(--radius);
+    background:linear-gradient(150deg,#1b2030 0%,#141826 60%,#12151f 100%);
+    border:1px solid var(--line);box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .hero::after{
+    content:"";position:absolute;top:-40px;right:-40px;width:160px;height:160px;border-radius:50%;
+    background:radial-gradient(circle,rgba(160,107,255,.18),transparent 70%);
+  }
+  .hero h2{margin:0 0 6px;font-size:20px;letter-spacing:-.02em;line-height:1.25}
+  .hero p{margin:0;color:var(--muted);font-size:13.5px;line-height:1.55;max-width:40ch}
+
+  .section-label{
+    color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.14em;
+    margin:22px 8px 10px;font-weight:700;
+  }
+
+  /* ---------- habit card ---------- */
+  .habit{
+    background:linear-gradient(160deg,var(--card-hi),var(--card));
+    border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;margin:0 2px 14px;box-shadow:var(--shadow);
+  }
+  .habit .row{display:flex;align-items:center;gap:13px}
+  .habit .emoji{
+    font-size:25px;width:50px;height:50px;border-radius:15px;flex:0 0 auto;
+    background:rgba(255,255,255,.05);border:1px solid var(--line);display:grid;place-items:center;
+  }
+  .habit .meta{flex:1;min-width:0}
+  .habit .name{font-weight:750;font-size:16.5px;margin:0;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .habit .sub{color:var(--muted);font-size:12.5px;margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .chip{
+    display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:650;
+    padding:3px 9px;border-radius:999px;border:1px solid var(--line);
+  }
+  .chip.streak{color:var(--mint);border-color:rgba(61,220,155,.3);background:rgba(61,220,155,.07)}
+  .chip.slip{color:var(--amber);border-color:rgba(255,182,72,.3);background:rgba(255,182,72,.07)}
+  .chip.timer{color:var(--indigo);border-color:rgba(124,140,255,.35);background:rgba(124,140,255,.08)}
+  .ratebar{height:4px;border-radius:99px;background:rgba(255,255,255,.07);margin-top:12px;overflow:hidden}
+  .ratebar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--mint),#7ee9c0)}
+  .rate-legend{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);margin-top:6px}
+
+  .habit .actions{display:flex;gap:9px;margin-top:14px}
+  .btn{
+    border:none;border-radius:14px;padding:13px 15px;font-size:14.5px;font-weight:750;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;flex:1;
+    transition:transform .06s ease,filter .15s ease;letter-spacing:-.01em;font-family:inherit;color:var(--text);
+  }
+  .btn:active{transform:scale(.965)}
+  .btn.danger{
+    background:linear-gradient(135deg,#ff5c5c,#ff3d7f);color:#fff;
+    box-shadow:0 6px 20px rgba(255,77,110,.30), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn.primary{
+    background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;
+    box-shadow:0 6px 20px rgba(124,140,255,.28), inset 0 1px 0 rgba(255,255,255,.25);
+  }
+  .btn.good{
+    background:linear-gradient(135deg,#2fbd85,var(--mint));color:#052b1e;
+    box-shadow:0 6px 20px rgba(61,220,155,.25), inset 0 1px 0 rgba(255,255,255,.3);
+  }
+  .btn.soft{background:var(--card-hi);border:1px solid var(--line-hi)}
+  .btn.ghost{background:transparent;border:1px solid var(--line-hi);color:var(--muted);flex:0 0 auto;width:48px;font-size:18px}
+  .btn.block{width:100%;flex:none;padding:15px}
+  .btn:disabled{opacity:.45;pointer-events:none}
+
+  /* ---------- stats ---------- */
+  .stat-row{display:flex;gap:10px;margin:2px 2px 8px}
+  .stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 10px;text-align:center}
+  .stat .n{font-size:23px;font-weight:800;letter-spacing:-.03em}
+  .stat .l{font-size:10.5px;color:var(--faint);text-transform:uppercase;letter-spacing:.1em;margin-top:3px;font-weight:650}
+
+  .empty{text-align:center;color:var(--muted);padding:46px 24px}
+  .empty .big{font-size:44px;margin-bottom:12px}
+  .empty b{color:var(--text)}
+  .empty p{font-size:13.5px;line-height:1.6;margin:8px 0 0}
+
+  .footlink{text-align:center;padding:6px 0 10px}
+  .footlink a{color:var(--faint);font-size:12px;cursor:pointer;text-decoration:none}
+
+  /* ---------- FAB ---------- */
+  .fab{
+    position:fixed;left:50%;transform:translateX(-50%);
+    bottom:calc(22px + env(safe-area-inset-bottom));z-index:30;
+    background:linear-gradient(135deg,var(--indigo),var(--violet));color:#fff;border:none;
+    padding:15px 24px;border-radius:999px;font-size:15px;font-weight:800;cursor:pointer;font-family:inherit;
+    box-shadow:0 12px 34px rgba(124,140,255,.45), inset 0 1px 0 rgba(255,255,255,.3);
+    display:flex;align-items:center;gap:8px;letter-spacing:-.01em;
+  }
+  .fab:active{transform:translateX(-50%) scale(.95)}
+
+  /* ---------- screens ---------- */
+  .screen{
+    position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;
+    max-width:540px;margin:0 auto;background:var(--bg);
+    animation:rise .3s cubic-bezier(.2,.8,.25,1);
+  }
+  @keyframes rise{from{transform:translateY(26px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .screen>header{
+    padding:calc(16px + env(safe-area-inset-top)) 18px 8px;
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+  }
+  .screen>header .htitle{font-size:16px;font-weight:750;letter-spacing:-.01em;margin:0;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .screen>header .hsub{font-size:12px;color:var(--muted);font-weight:600}
+  .screen .body{flex:1;overflow-y:auto;padding:8px 18px 28px;-webkit-overflow-scrolling:touch}
+  .screen .footer{
+    padding:14px 18px calc(18px + env(safe-area-inset-bottom));
+    border-top:1px solid var(--line);background:var(--bg-2);display:flex;gap:10px;
+  }
+
+  label.field{display:block;margin:18px 2px 8px;font-size:13px;color:var(--muted);font-weight:650}
+  input[type=text],textarea,select{
+    width:100%;background:var(--card);border:1px solid var(--line-hi);border-radius:15px;color:var(--text);
+    padding:14px 15px;font-size:16px;font-family:inherit;outline:none;resize:none;
+  }
+  input:focus,textarea:focus{border-color:var(--indigo);box-shadow:0 0 0 3px rgba(124,140,255,.15)}
+  textarea{min-height:130px;line-height:1.55}
+  .hint{color:var(--faint);font-size:12.5px;margin:8px 2px 0;line-height:1.55}
+  .center{text-align:center}
+
+  .emoji-picker{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+  .emoji-picker button{
+    font-size:22px;width:47px;height:47px;border-radius:13px;cursor:pointer;
+    background:var(--card);border:1px solid var(--line);transition:transform .06s;
+  }
+  .emoji-picker button:active{transform:scale(.9)}
+  .emoji-picker button.sel{border-color:var(--indigo);background:rgba(124,140,255,.12);box-shadow:0 0 0 2px var(--indigo) inset}
+
+  .steps{display:flex;gap:6px;margin:2px 2px 0}
+  .steps i{height:4px;flex:1;border-radius:99px;background:rgba(255,255,255,.09)}
+  .steps i.on{background:linear-gradient(90deg,var(--indigo),var(--violet))}
+
+  /* ---------- intervention ---------- */
+  .interv .body{padding:0 18px 28px}
+  .pulse-wrap{text-align:center;padding:18px 0 4px;position:relative}
+  .pulse{
+    width:92px;height:92px;border-radius:50%;margin:0 auto;display:grid;place-items:center;font-size:40px;
+    background:radial-gradient(circle at 50% 35%,#3d2333,#231624);
+    border:1px solid rgba(255,92,120,.3);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{box-shadow:0 0 0 0 rgba(255,77,141,.35), 0 0 40px rgba(255,77,141,.15)}
+    50%{box-shadow:0 0 0 20px rgba(255,77,141,0), 0 0 60px rgba(255,77,141,.25)}
+  }
+  .interv h2.big{text-align:center;margin:16px 10px 6px;font-size:24px;letter-spacing:-.02em;line-height:1.2}
+  .interv .lead{text-align:center;color:var(--muted);margin:0 18px 18px;font-size:14px;line-height:1.55}
+
+  .excuse-callout{
+    background:linear-gradient(135deg,rgba(255,182,72,.10),rgba(255,138,91,.06));
+    border:1px solid rgba(255,182,72,.25);border-radius:var(--radius-s);
+    padding:13px 15px;margin:0 0 14px;font-size:13.5px;line-height:1.55;color:#f4d9a8;
+  }
+  .excuse-callout b{color:var(--amber)}
+
+  .quote{
+    background:linear-gradient(160deg,var(--card-hi),var(--card));
+    border:1px solid var(--line);border-radius:var(--radius-s);
+    padding:16px 17px 13px;margin:0 0 11px;position:relative;
+    font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.6;
+  }
+  .quote::before{
+    content:"“";position:absolute;top:2px;left:10px;font-size:44px;line-height:1;
+    color:rgba(255,255,255,.07);font-family:var(--serif);
+  }
+  .quote .qtext{position:relative}
+  .quote .who{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-style:normal;
+    color:var(--faint);font-size:11px;margin-top:10px;text-transform:uppercase;letter-spacing:.09em;font-weight:650;
+    display:flex;justify-content:space-between;
+  }
+  .quote.m5{border-left:3px solid var(--ember)}
+  .quote.m4{border-left:3px solid var(--orange)}
+  .quote.m3{border-left:3px solid var(--amber)}
+  .quote.m2{border-left:3px solid var(--faint)}
+  .quote.m1{border-left:3px solid var(--mint)}
+
+  .showmore{width:100%;background:none;border:1px dashed var(--line-hi);color:var(--muted);
+    border-radius:12px;padding:11px;font-size:13px;font-weight:650;cursor:pointer;margin-bottom:8px;font-family:inherit}
+
+  .divider{height:1px;background:var(--line);margin:18px 0}
+  .choice-grid{display:grid;gap:10px}
+  .tinystats{
+    display:flex;justify-content:center;gap:14px;color:var(--faint);font-size:12px;margin:14px 0 0;font-weight:600;
+  }
+  .tinystats b{color:var(--muted)}
+
+  /* ---------- mood ---------- */
+  .mood-scale{display:flex;gap:7px;margin-top:6px}
+  .mood-scale button{
+    flex:1;padding:13px 0 10px;border-radius:13px;border:1px solid var(--line);background:var(--card);
+    cursor:pointer;font-size:23px;display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .06s;
+  }
+  .mood-scale button small{font-size:10px;color:var(--faint);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:-apple-system,sans-serif}
+  .mood-scale button:active{transform:scale(.93)}
+  .mood-scale button.sel{border-color:var(--indigo);background:rgba(124,140,255,.10);box-shadow:0 0 0 2px var(--indigo) inset}
+  .mood-scale button.sel small{color:var(--indigo)}
+
+  /* ---------- excuse chips / snooze ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .chips button{
+    background:var(--card);border:1px solid var(--line-hi);color:var(--text);
+    padding:10px 14px;border-radius:999px;font-size:13.5px;font-weight:650;cursor:pointer;font-family:inherit;
+  }
+  .chips button.sel{border-color:var(--amber);background:rgba(255,182,72,.12);color:var(--amber)}
+  .snooze-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px}
+  .snooze-grid button{
+    padding:14px 4px;border-radius:13px;border:1px solid var(--line-hi);background:var(--card);color:var(--text);
+    font-weight:750;cursor:pointer;font-size:14px;font-family:inherit;
+  }
+  .snooze-grid button:active{transform:scale(.94)}
+  .note-box{
+    background:linear-gradient(135deg,#241f30,#1b1926);border:1px solid var(--line);border-radius:var(--radius-s);
+    padding:14px 16px;color:var(--muted);font-size:13.5px;line-height:1.6;margin-top:10px;
+  }
+  .note-box b{color:var(--text)}
+
+  /* ---------- win ---------- */
+  .win-body{display:flex;flex-direction:column;justify-content:center;align-items:center;height:100%;text-align:center;padding:0 26px}
+  .win-emoji{font-size:70px;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+  @keyframes pop{from{transform:scale(.3);opacity:0}to{transform:scale(1);opacity:1}}
+  .win-body h2{font-size:24px;margin:16px 0 8px;letter-spacing:-.02em}
+  .win-body p{color:var(--muted);font-size:14px;line-height:1.6;margin:0;max-width:34ch}
+
+  /* ---------- history ---------- */
+  .log{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px 15px;margin-bottom:10px}
+  .log .lh{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:11.5px;color:var(--faint);margin-bottom:7px;font-weight:600}
+  .log .lt{font-size:14px;line-height:1.55}
+  .log .lt.serif{font-family:var(--serif);font-style:italic;font-size:15px}
+  .tag{font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;letter-spacing:.06em;flex:0 0 auto}
+  .tag.resisted{background:rgba(61,220,155,.14);color:var(--mint)}
+  .tag.slipped{background:rgba(255,92,92,.14);color:var(--ember)}
+  .tag.refl{background:rgba(124,140,255,.14);color:var(--indigo)}
+
+  /* ---------- banner ---------- */
+  .banner{
+    position:fixed;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom));z-index:70;
+    max-width:500px;width:calc(100% - 28px);
+    background:linear-gradient(140deg,#262133,#1d1a29);border:1px solid rgba(160,107,255,.25);
+    border-radius:16px;padding:13px 15px;box-shadow:var(--shadow);
+    display:flex;gap:12px;align-items:center;animation:rise .3s ease;
+  }
+  .banner .b-emoji{font-size:24px}
+  .banner .b-text{flex:1;font-size:13px;line-height:1.5}
+  .banner .b-text b{color:var(--amber)}
+  .banner .b-act{
+    background:linear-gradient(135deg,var(--indigo),var(--violet));border:none;color:#fff;border-radius:11px;
+    padding:9px 13px;font-weight:750;cursor:pointer;font-size:13px;font-family:inherit;flex:0 0 auto;
+  }
+  .banner .b-close{background:none;border:none;color:var(--faint);font-size:18px;cursor:pointer;padding:4px}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important;transition:none !important}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand">
+      <div class="mark">🜂</div>
+      <div>
+        <h1>Aftermath</h1>
+        <small>your own words, when they matter</small>
+      </div>
+    </div>
+    <div class="hbtns">
+      <button class="icon-btn" id="notifBtn" title="Reminders">🔔</button>
+      <button class="icon-btn" id="settingsBtn" title="Settings">⚙︎</button>
+    </div>
+  </header>
+  <main id="home"></main>
+  <button class="fab" id="addFab">＋ Track a habit</button>
+</div>
+<div id="modalRoot"></div>
+<div id="bannerRoot"></div>
+<input type="file" id="importFile" accept="application/json" style="display:none"/>
+
+<script>
+"use strict";
+
+/* ================= storage ================= */
+const KEY = "aftermath.v2";
+const OLD_KEY = "aftermath.v1";
+const DEFAULT = { v:2, habits:[], pending:[], settings:{} };
+
+function migrateV1(old){
+  const habits = (old.habits||[]).map(h => ({
+    id: h.id, name: h.name, emoji: h.emoji||"🎯", createdAt: h.createdAt||Date.now(),
+    reflections: (h.consequences||[]).map(c=>({id:c.id, ts:c.ts, text:c.text, mood:c.mood, kind:"manual"})),
+    events: (h.logs||[]).map(l=>({id:l.id, ts:l.ts, type: l.outcome==="resisted"?"resisted":"slipped", snoozes:l.snoozes||0, excuses:[]}))
+  }));
+  return { v:2, habits, pending:[], settings: old.settings||{} };
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(raw) return Object.assign(JSON.parse(JSON.stringify(DEFAULT)), JSON.parse(raw));
+    const oldRaw = localStorage.getItem(OLD_KEY);
+    if(oldRaw){ const m = migrateV1(JSON.parse(oldRaw)); localStorage.setItem(KEY, JSON.stringify(m)); return m; }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT));
+}
+let state = load();
+state.habits.forEach(h=>{ h.reflections = h.reflections||[]; h.events = h.events||[]; });
+state.pending = state.pending||[];
+function save(){ localStorage.setItem(KEY, JSON.stringify(state)); }
+
+/* ================= helpers ================= */
+const $ = (s,r=document)=>r.querySelector(s);
+const uid = ()=>Math.random().toString(36).slice(2,10);
+const now = ()=>Date.now();
+function el(html){ const t=document.createElement("template"); t.innerHTML=html.trim(); return t.content.firstChild; }
+function esc(s){ return (s||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function habitById(id){ return state.habits.find(h=>h.id===id); }
+
+function fmtWhen(ts){
+  const diff=(now()-ts)/1000;
+  if(diff<60) return "just now";
+  if(diff<3600) return Math.floor(diff/60)+" min ago";
+  if(diff<86400) return Math.floor(diff/3600)+"h ago";
+  if(diff<7*86400) return Math.floor(diff/86400)+"d ago";
+  return new Date(ts).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+}
+function fmtDur(ms){
+  if(ms<=0) return "now";
+  const s=Math.ceil(ms/1000);
+  if(s<60) return s+"s";
+  const m=Math.floor(s/60);
+  if(m<60) return m+"m "+(s%60? (s%60)+"s":"").trim();
+  return Math.floor(m/60)+"h "+(m%60)+"m";
+}
+
+const MOODS  = {1:"🙂",2:"😐",3:"😕",4:"😣",5:"😖"};
+const MOODW  = {1:"fine",2:"okay",3:"rough",4:"bad",5:"awful"};
+const EMOJIS = ["📱","🚬","🍷","🥃","🍔","🍩","🍫","🛒","💸","🎰","🎮","😤","🛌","☕","💊","👆","🖥️","🌙"];
+const EXCUSES = ["I'm tired","I don't want to","Just this once","I've earned it","Too stressed","Everyone's doing it"];
+const ESCALATION = [
+  {h:"Wait. Before you do —", l:"past-you left something here for exactly this moment."},
+  {h:"It came back. So did I.", l:"One snooze down. That's fine. Read it one more time — slowly."},
+  {h:"Third time tonight.", l:"The urge keeps knocking. Your own words keep answering. Listen to them."},
+  {h:"Still here. Still true.", l:"You can snooze me all night — the aftermath doesn't expire."},
+  {h:"However long it takes.", l:"I'll keep showing up with the receipts. You wrote them yourself."}
+];
+
+/* stats */
+function counts(h){
+  const r = h.events.filter(e=>e.type==="resisted").length;
+  const s = h.events.filter(e=>e.type==="slipped").length;
+  return {r,s,total:r+s};
+}
+function resistRate(h){ const c=counts(h); return c.total? Math.round(100*c.r/c.total) : null; }
+function streakInfo(h){
+  const slips = h.events.filter(e=>e.type==="slipped").sort((a,b)=>b.ts-a.ts);
+  if(!slips.length){
+    if(!h.events.length) return {days:null,label:"no data yet"};
+    return {days:Infinity,label:"clean so far"};
+  }
+  const days = Math.floor((now()-slips[0].ts)/86400000);
+  return {days, label: days===0 ? "slipped today" : days+" day"+(days>1?"s":"")+" clean"};
+}
+function topExcuses(h, n=3){
+  const map={};
+  h.events.forEach(e=>(e.excuses||[]).forEach(x=>{ map[x]=(map[x]||0)+1; }));
+  return Object.entries(map).sort((a,b)=>b[1]-a[1]).slice(0,n);
+}
+function pendingFor(id, kind){ return state.pending.find(p=>p.habitId===id && (!kind||p.kind===kind)); }
+function removePending(pred){ state.pending = state.pending.filter(p=>!pred(p)); }
+
+/* ================= home ================= */
+function renderHome(){
+  const root = $("#home");
+  root.innerHTML = "";
+  root.appendChild(el(`
+    <div class="hero">
+      <h2>Meet yourself at the moment.</h2>
+      <p>When a habit is about to win, open it here. You'll read — in your own words — exactly how it felt afterward last time. Then you decide.</p>
+    </div>`));
+
+  if(!state.habits.length){
+    root.appendChild(el(`
+      <div class="empty">
+        <div class="big">🪞</div>
+        <b>Nothing tracked yet.</b>
+        <p>Add the habit that keeps winning.<br/>You'll write one honest note about its aftermath —<br/>and that note will meet you at the next urge.</p>
+      </div>`));
+    return;
+  }
+
+  root.appendChild(el(`<div class="section-label">Your habits</div>`));
+  state.habits.forEach(h=>{
+    const st = streakInfo(h);
+    const c = counts(h);
+    const rate = resistRate(h);
+    const snz = pendingFor(h.id,"snooze");
+    const chk = pendingFor(h.id,"checkin");
+    const nRefl = h.reflections.length;
+
+    const chips = [];
+    if(st.days!==null) chips.push(`<span class="chip ${st.label==="slipped today"?"slip":"streak"}">${st.label==="slipped today"?"⚠️":"🔥"} ${st.label}</span>`);
+    chips.push(`<span style="color:var(--faint);font-size:12px">${nRefl} reflection${nRefl!==1?"s":""}</span>`);
+
+    const timerHtml = snz
+      ? `<span class="chip timer">⏰ <span data-due="${snz.dueTs}">returns in ${fmtDur(snz.dueTs-now())}</span></span>`
+      : (chk ? `<span class="chip timer">🕯️ <span data-due="${chk.dueTs}">check-in in ${fmtDur(chk.dueTs-now())}</span></span>` : "");
+
+    const rateHtml = rate!==null ? `
+      <div class="ratebar"><i style="width:${rate}%"></i></div>
+      <div class="rate-legend"><span>${c.r} resisted</span><span>${rate}% held</span><span>${c.s} slipped</span></div>` : "";
+
+    const card = el(`
+      <div class="habit" data-id="${h.id}">
+        <div class="row">
+          <div class="emoji">${h.emoji}</div>
+          <div class="meta">
+            <p class="name">${esc(h.name)}</p>
+            <div class="sub">${chips.join("")} ${timerHtml}</div>
+          </div>
+          <button class="btn ghost" data-act="menu" title="Options">⋯</button>
+        </div>
+        ${rateHtml}
+        <div class="actions">
+          ${snz
+            ? `<button class="btn soft" data-act="face">⏰ Face it now — skip the snooze</button>`
+            : `<button class="btn danger" data-act="trigger">⚡ It's happening</button>`}
+        </div>
+      </div>`);
+    root.appendChild(card);
+  });
+
+  const R = state.habits.reduce((a,h)=>a+counts(h).r,0);
+  const S = state.habits.reduce((a,h)=>a+counts(h).s,0);
+  const F = state.habits.reduce((a,h)=>a+h.reflections.length,0);
+  root.appendChild(el(`<div class="section-label">Overall</div>`));
+  root.appendChild(el(`
+    <div class="stat-row">
+      <div class="stat"><div class="n" style="color:var(--mint)">${R}</div><div class="l">Resisted</div></div>
+      <div class="stat"><div class="n" style="color:var(--ember)">${S}</div><div class="l">Slipped</div></div>
+      <div class="stat"><div class="n" style="color:var(--indigo)">${F}</div><div class="l">Reflections</div></div>
+    </div>`));
+  root.appendChild(el(`<div class="footlink"><a data-export>Everything stays on this device · export backup</a></div>`));
+}
+
+$("#home").addEventListener("click", e=>{
+  if(e.target.closest("[data-export]")){ exportData(); return; }
+  const card = e.target.closest(".habit"); if(!card) return;
+  const id = card.dataset.id;
+  const act = e.target.closest("[data-act]")?.dataset.act;
+  if(act==="trigger") openIntervention(id, 0, []);
+  else if(act==="face"){
+    const p = pendingFor(id,"snooze");
+    removePending(x=>x.habitId===id && x.kind==="snooze"); save();
+    openIntervention(id, p?p.count:0, p?p.excuses:[]);
+  }
+  else if(act==="menu") openMenu(id);
+});
+$("#addFab").addEventListener("click", ()=>openWizard());
+
+/* ================= wizard (new habit + first reflection) ================= */
+function openWizard(){
+  let name="", emoji="📱";
+  const scr = el(`
+    <div class="screen">
+      <header>
+        <div><p class="htitle">Track a habit</p></div>
+        <button class="icon-btn" data-close>✕</button>
+      </header>
+      <div class="body">
+        <div class="steps"><i class="on"></i><i id="step2bar"></i></div>
+        <div id="stepBox"></div>
+      </div>
+      <div class="footer" id="wizFoot"></div>
+    </div>`);
+
+  function step1(){
+    $("#step2bar",scr).classList.remove("on");
+    $("#stepBox",scr).innerHTML = `
+      <label class="field">What's the habit that keeps winning?</label>
+      <input type="text" id="hname" placeholder="e.g. Late-night doomscrolling" maxlength="60" value="${esc(name)}"/>
+      <label class="field">Give it a face</label>
+      <div class="emoji-picker" id="epick">
+        ${EMOJIS.map(x=>`<button data-e="${x}" class="${x===emoji?"sel":""}">${x}</button>`).join("")}
+      </div>
+      <p class="hint">No judgment here. You're not quitting anything today — you're just installing a mirror at the door.</p>`;
+    $("#wizFoot",scr).innerHTML = `
+      <button class="btn soft" data-close style="flex:0 0 110px">Cancel</button>
+      <button class="btn primary" id="next1">Next →</button>`;
+    $("#epick",scr).addEventListener("click", e=>{
+      const b=e.target.closest("[data-e]"); if(!b)return;
+      scr.querySelectorAll("#epick button").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel"); emoji=b.dataset.e;
+    });
+    $("#next1",scr).addEventListener("click", ()=>{
+      name = $("#hname",scr).value.trim();
+      if(!name){ $("#hname",scr).focus(); return; }
+      step2();
+    });
+    setTimeout(()=>$("#hname",scr).focus(),250);
+  }
+
+  function step2(){
+    $("#step2bar",scr).classList.add("on");
+    let mood=4;
+    $("#stepBox",scr).innerHTML = `
+      <label class="field" style="font-size:15px;color:var(--text)">Think back to the last time ${esc(name.toLowerCase())} won.</label>
+      <p class="hint" style="margin-top:0">How did you feel <i>afterward</i>? Be specific and honest — this exact sentence is what future-you will read at the next urge. Give them something real.</p>
+      <textarea id="ftext" placeholder="e.g. Wired till 3am, hated myself, dragged through the whole next day like a ghost…"></textarea>
+      <label class="field">How bad did it feel?</label>
+      <div class="mood-scale" id="mscale">
+        ${[1,2,3,4,5].map(m=>`<button data-m="${m}" class="${m===mood?"sel":""}">${MOODS[m]}<small>${MOODW[m]}</small></button>`).join("")}
+      </div>`;
+    $("#wizFoot",scr).innerHTML = `
+      <button class="btn soft" id="skipRefl" style="flex:0 0 110px">Skip</button>
+      <button class="btn primary" id="saveWiz">Start tracking</button>`;
+    $("#mscale",scr).addEventListener("click", e=>{
+      const b=e.target.closest("[data-m]"); if(!b)return;
+      mood=+b.dataset.m;
+      scr.querySelectorAll("#mscale button").forEach(x=>x.classList.remove("sel"));
+      b.classList.add("sel");
+    });
+    function finish(withRefl){
+      const h = {id:uid(), name, emoji, createdAt:now(), reflections:[], events:[]};
+      if(withRefl){
+        const text = $("#ftext",scr).value.trim();
+        if(!text){ $("#ftext",scr).focus(); return; }
+        h.reflections.push({id:uid(), ts:now(), text, mood, kind:"first"});
+      }
+      state.habits.push(h); save(); closeScr(scr); renderHome();
+      banner("🜂", withRefl
+        ? "Armed. Next time <b>"+esc(name)+"</b> knocks, hit <b>⚡ It's happening</b> — your words will be waiting."
+        : "Tracking <b>"+esc(name)+"</b>. Add a reflection when you can — that's the ammunition.");
+    }
+    $("#saveWiz",scr).addEventListener("click", ()=>finish(true));
+    $("#skipRefl",scr).addEventListener("click", ()=>finish(false));
+    setTimeout(()=>$("#ftext",scr).focus(),250);
+  }
+
+  bindClose(scr); mount(scr); step1();
+}
+
+/* ================= intervention ================= */
+function openIntervention(habitId, snoozeCount=0, excuses=[]){
+  const h = habitById(habitId); if(!h) return;
+  removePending(p=>p.habitId===habitId && p.kind==="snooze"); save();
+
+  const esc_ = ESCALATION[Math.min(snoozeCount, ESCALATION.length-1)];
+  const refl = [...h.reflections].sort((a,b)=> b.mood-a.mood || b.ts-a.ts);
+  const top = refl.slice(0,3);
+  const restCount = refl.length - top.length;
+  const c = counts(h);
+  const lastExcuse = excuses.length ? excuses[excuses.length-1] : null;
+
+  const quoteHtml = r => `
+    <div class="quote m${r.mood}">
+      <div class="qtext">${esc(r.text)}</div>
+      <div class="who"><span>${MOODS[r.mood]} felt ${MOODW[r.mood]}</span><span>${fmtWhen(r.ts)}</span></div>
+    </div>`;
+
+  const quotesHtml = refl.length
+    ? top.map(quoteHtml).join("") + (restCount>0 ? `<button class="showmore" data-more>Show ${restCount} more reflection${restCount>1?"s":""}</button>` : "")
+    : `<div class="note-box center">No reflections yet for this one.<br/><b>Whatever happens next, you'll get to write it down</b> — and next time won't start from zero.</div>`;
+
+  const excuseHtml = lastExcuse && snoozeCount>0
+    ? `<div class="excuse-callout">You told me: <b>“${esc(lastExcuse)}”</b> — that was ${snoozeCount>1?"a few snoozes":"a snooze"} ago. Excuses fade. Read how the other thing felt:</div>`
+    : "";
+
+  const scr = el(`
+    <div class="screen interv">
+      <header>
+        <div style="min-width:0">
+          <p class="htitle" style="color:var(--muted);font-size:13px;font-weight:650">${h.emoji} ${esc(h.name)}</p>
+          ${snoozeCount>0?`<div class="hsub">snooze #${snoozeCount} came due</div>`:""}
+        </div>
+        <button class="icon-btn" data-close>✕</button>
+      </header>
+      <div class="body">
+        <div class="pulse-wrap"><div class="pulse">${h.emoji}</div></div>
+        <h2 class="big">${esc_.h}</h2>
+        <p class="lead">${esc_.l}</p>
+        ${excuseHtml}
+        ${quotesHtml}
+        <div class="divider"></div>
+        <div class="choice-grid">
+          <button class="btn good block" data-i="resist">🛡️ I'm walking away</button>
+          <button class="btn soft block" data-i="snooze">😮‍💨 Not now — snooze me</button>
+          <button class="btn danger block" data-i="slip">💥 I did it anyway</button>
+        </div>
+        <div class="tinystats">
+          <span>resisted <b>${c.r}</b></span><span>·</span>
+          <span>slipped <b>${c.s}</b></span><span>·</span>
+          <span>honesty is the whole game</span>
+        </div>
+        <p class="hint center" style="margin-top:10px">Every answer is safe here. This is data for you — not a judge.</p>
+      </div>
+    </div>`);
+
+  scr.addEventListener("click", e=>{
+    if(e.target.closest("[data-more]")){
+      const btn = e.target.closest("[data-more]");
+      const restHtml = refl.slice(3).map(quoteHtml).join("");
+      btn.insertAdjacentHTML("beforebegin", restHtml);
+      btn.remove();
+      return;
+    }
+    const i = e.target.closest("[data-i]")?.dataset.i; if(!i) return;
+    if(i==="resist"){
+      h.events.push({id:uid(), ts:now(), type:"resisted", snoozes:snoozeCount, excuses});
+      save(); closeScr(scr); renderHome(); openWin(h);
+    } else if(i==="slip"){
+      h.events.push({id:uid(), ts:now(), type:"slipped", snoozes:snoozeCount, excuses});
+      save(); closeScr(scr); renderHome(); openAftermath(h.id);
+    } else if(i==="snooze"){
+      closeScr(scr); openSnooze(h.id, snoozeCount, excuses);
+    }
+  });
+  bindClose(scr); mount(scr);
+}
+
+/* ================= snooze ================= */
+function openSnooze(habitId, snoozeCount, excuses){
+  const h = habitById(habitId); if(!h) return;
+  let excuse = null;
+  const scr = el(`
+    <div class="screen">
+      <header>
+        <p class="htitle">Okay — hit snooze</p>
+        <button class="icon-btn" data-close>✕</button>
+      </header>
+      <div class="body">
+        <div class="note-box">Fine. Like an alarm, this comes back — and when it does, it brings <b>your own words</b> with it. It doesn't get tired. It doesn't get offended. It just returns.</div>
+        <label class="field">What's the reason this time? <span style="color:var(--faint);font-weight:500">(optional — it'll be quoted back to you)</span></label>
+        <div class="chips" id="xchips">
+          ${EXCUSES.map(x=>`<button data-x="${esc(x)}">${esc(x)}</button>`).join("")}
+        </div>
+        <input type="text" id="xcustom" placeholder="…or type your own" maxlength="80" style="margin-top:10px"/>
+        <label class="field">Come back in…</label>
+        <div class="snooze-grid" id="snz">
+          <button data-min="1">1 min</button>
+          <button data-min="5">5 min</button>
+          <button data-min="15">15 min</button>
+          <button data-min="30">30 min</button>
+        </div>
+        <p class="hint">Works even if you close this — the reminder is waiting the moment you reopen. Tap 🔔 up top once to also get a real notification while the app is open in the background.</p>
+      </div>
+    </div>`);
+
+  $("#xchips",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-x]"); if(!b)return;
+    const was = b.classList.contains("sel");
+    scr.querySelectorAll("#xchips button").forEach(x=>x.classList.remove("sel"));
+    if(!was){ b.classList.add("sel"); excuse=b.dataset.x; $("#xcustom",scr).value=""; }
+    else excuse=null;
+  });
+  $("#xcustom",scr).addEventListener("input", ()=>{
+    scr.querySelectorAll("#xchips button").forEach(x=>x.classList.remove("sel"));
+    excuse = $("#xcustom",scr).value.trim() || null;
+  });
+  $("#snz",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-min]"); if(!b)return;
+    const mins = +b.dataset.min;
+    const typed = $("#xcustom",scr).value.trim();
+    if(typed) excuse = typed;
+    const newExcuses = excuse ? [...excuses, excuse] : [...excuses];
+    removePending(p=>p.habitId===habitId && p.kind==="snooze");
+    state.pending.push({id:uid(), habitId, kind:"snooze", dueTs:now()+mins*60000, count:snoozeCount+1, excuses:newExcuses});
+    save(); closeScr(scr); renderHome();
+    banner("😮‍💨","Snoozed <b>"+mins+" min</b>"+(excuse?" — noted: <b>“"+esc(excuse)+"”</b>":"")+". I'll bring the feeling back.");
+  });
+  bindClose(scr); mount(scr);
+}
+
+/* ================= aftermath capture ================= */
+function openAftermath(habitId){
+  const h = habitById(habitId); if(!h) return;
+  let mood=4, checkMins=45;
+  const scr = el(`
+    <div class="screen">
+      <header>
+        <p class="htitle">It happened. Now the important part.</p>
+        <button class="icon-btn" data-close>✕</button>
+      </header>
+      <div class="body">
+        <p class="hint" style="font-size:13.5px;margin-top:6px">No shame — you showed up and told the truth, which is more than most. Now capture the aftermath <b style="color:var(--text)">while it's raw</b>. This exact sentence meets future-you at the next urge.</p>
+        <label class="field">How does it feel, in your own words?</label>
+        <textarea id="atext" placeholder="e.g. That gross heavy feeling again. Money gone, night gone, and tomorrow-me pays for all of it…"></textarea>
+        <label class="field">How bad?</label>
+        <div class="mood-scale" id="mscale">
+          ${[1,2,3,4,5].map(m=>`<button data-m="${m}" class="${m===mood?"sel":""}">${MOODS[m]}<small>${MOODW[m]}</small></button>`).join("")}
+        </div>
+        <label class="field">Want me to check on you in a bit? The feeling usually gets clearer.</label>
+        <div class="snooze-grid" id="chk">
+          <button data-ck="15">15 min</button>
+          <button data-ck="45" class="sel" style="border-color:var(--indigo);box-shadow:0 0 0 2px var(--indigo) inset">45 min</button>
+          <button data-ck="120">2 h</button>
+          <button data-ck="0">don't</button>
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn soft" data-skip style="flex:0 0 110px">Skip</button>
+        <button class="btn primary" id="saveA">Save the aftermath</button>
+      </div>
+    </div>`);
+
+  $("#mscale",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-m]"); if(!b)return;
+    mood=+b.dataset.m;
+    scr.querySelectorAll("#mscale button").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");
+  });
+  $("#chk",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-ck]"); if(!b)return;
+    checkMins=+b.dataset.ck;
+    scr.querySelectorAll("#chk button").forEach(x=>{x.classList.remove("sel");x.style.borderColor="";x.style.boxShadow="";});
+    b.classList.add("sel"); b.style.borderColor="var(--indigo)"; b.style.boxShadow="0 0 0 2px var(--indigo) inset";
+  });
+  function scheduleCheckin(){
+    if(checkMins>0){
+      removePending(p=>p.habitId===habitId && p.kind==="checkin");
+      state.pending.push({id:uid(), habitId, kind:"checkin", dueTs:now()+checkMins*60000, count:0, excuses:[]});
+    }
+  }
+  $("#saveA",scr).addEventListener("click", ()=>{
+    const text = $("#atext",scr).value.trim();
+    if(!text){ $("#atext",scr).focus(); return; }
+    h.reflections.push({id:uid(), ts:now(), text, mood, kind:"raw"});
+    scheduleCheckin(); save(); closeScr(scr); renderHome();
+    banner("🜂","Saved. Next time it's happening, <b>these words go first</b>."+(checkMins>0?" I'll check on you in "+checkMins+" min.":""));
+  });
+  scr.addEventListener("click", e=>{
+    if(e.target.closest("[data-skip]")){
+      scheduleCheckin(); save(); closeScr(scr); renderHome();
+      if(checkMins>0) banner("🕯️","Okay. I'll still check on you in "+checkMins+" min — the words can come then.");
+    }
+  });
+  bindClose(scr); mount(scr);
+  setTimeout(()=>$("#atext",scr).focus(),250);
+}
+
+/* ================= check-in ("after a while…") ================= */
+function openCheckin(habitId){
+  const h = habitById(habitId); if(!h) return;
+  let mood=4;
+  const scr = el(`
+    <div class="screen">
+      <header>
+        <p class="htitle">🕯️ Check-in · ${esc(h.name)}</p>
+        <button class="icon-btn" data-close>✕</button>
+      </header>
+      <div class="body">
+        <p class="hint" style="font-size:14px;margin-top:8px;color:var(--muted)">It's been a little while since it happened. Nobody's watching. <b style="color:var(--text)">How do you actually feel right now?</b> This is usually where the truest sentence gets written.</p>
+        <label class="field">Right now, honestly…</label>
+        <textarea id="ctext" placeholder="e.g. The fun part is long gone. What's left is the headache and the annoyance at myself…"></textarea>
+        <label class="field">And how bad is it?</label>
+        <div class="mood-scale" id="mscale">
+          ${[1,2,3,4,5].map(m=>`<button data-m="${m}" class="${m===mood?"sel":""}">${MOODS[m]}<small>${MOODW[m]}</small></button>`).join("")}
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn soft" data-later style="flex:0 0 130px">Ask me later</button>
+        <button class="btn primary" id="saveC">Save</button>
+      </div>
+    </div>`);
+  $("#mscale",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-m]"); if(!b)return;
+    mood=+b.dataset.m;
+    scr.querySelectorAll("#mscale button").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");
+  });
+  $("#saveC",scr).addEventListener("click", ()=>{
+    const text = $("#ctext",scr).value.trim();
+    if(!text){ $("#ctext",scr).focus(); return; }
+    h.reflections.push({id:uid(), ts:now(), text, mood, kind:"checkin"});
+    save(); closeScr(scr); renderHome();
+    banner("🜂","Filed. The arsenal grows — future-you says thanks.");
+  });
+  scr.addEventListener("click", e=>{
+    if(e.target.closest("[data-later]")){
+      removePending(p=>p.habitId===habitId && p.kind==="checkin");
+      state.pending.push({id:uid(), habitId, kind:"checkin", dueTs:now()+45*60000, count:0, excuses:[]});
+      save(); closeScr(scr); renderHome();
+      banner("🕯️","Alright — and so on, and so on. Back in 45.");
+    }
+  });
+  bindClose(scr); mount(scr);
+  setTimeout(()=>$("#ctext",scr).focus(),250);
+}
+
+/* ================= win ================= */
+function openWin(h){
+  const st = streakInfo(h);
+  const streakLine = (st.days!==null && st.days!==Infinity && st.days>0)
+    ? `<div class="chip streak" style="margin-top:18px;font-size:13px;padding:7px 14px">🔥 ${st.label}</div>` : "";
+  const scr = el(`
+    <div class="screen">
+      <header><span></span><button class="icon-btn" data-close>✕</button></header>
+      <div class="body win-body">
+        <div class="win-emoji">🛡️</div>
+        <h2>You read it. You walked.</h2>
+        <p>The urge showed up with its usual pitch — and past-you was standing at the door with receipts. That's the whole game, and you just won a round.</p>
+        ${streakLine}
+        <div style="height:26px"></div>
+        <button class="btn good block" data-close style="max-width:280px">Feels better than the habit</button>
+      </div>
+    </div>`);
+  bindClose(scr); mount(scr);
+}
+
+/* ================= menu / history ================= */
+function openMenu(id){
+  const h = habitById(id); if(!h) return;
+  const c = counts(h);
+  const rate = resistRate(h);
+  const tx = topExcuses(h);
+  const txHtml = tx.length ? `
+    <div class="section-label" style="margin-left:2px">Your greatest-hits excuses</div>
+    ${tx.map(([x,n])=>`<div class="log" style="padding:11px 14px"><div class="lt" style="display:flex;justify-content:space-between"><span>“${esc(x)}”</span><span style="color:var(--faint)">×${n}</span></div></div>`).join("")}` : "";
+  const scr = el(`
+    <div class="screen">
+      <header>
+        <p class="htitle">${h.emoji} ${esc(h.name)}</p>
+        <button class="icon-btn" data-close>✕</button>
+      </header>
+      <div class="body">
+        <div class="stat-row" style="margin-top:8px">
+          <div class="stat"><div class="n" style="color:var(--mint)">${c.r}</div><div class="l">Resisted</div></div>
+          <div class="stat"><div class="n" style="color:var(--ember)">${c.s}</div><div class="l">Slipped</div></div>
+          <div class="stat"><div class="n" style="color:var(--indigo)">${rate===null?"–":rate+"%"}</div><div class="l">Held</div></div>
+        </div>
+        <div class="choice-grid" style="margin-top:10px">
+          <button class="btn soft block" data-m="ammo">🜂 Add ammunition (write a reflection)</button>
+          <button class="btn soft block" data-m="history">📜 Full history</button>
+          <button class="btn soft block" data-m="edit">✏️ Rename / change icon</button>
+          <button class="btn soft block" data-m="delete" style="color:var(--ember)">🗑️ Delete habit</button>
+        </div>
+        ${txHtml}
+      </div>
+    </div>`);
+  scr.addEventListener("click", e=>{
+    const m = e.target.closest("[data-m]")?.dataset.m; if(!m) return;
+    if(m==="ammo"){ closeScr(scr); openAmmo(id); }
+    else if(m==="history"){ closeScr(scr); openHistory(id); }
+    else if(m==="edit"){ closeScr(scr); openEdit(id); }
+    else if(m==="delete"){
+      if(confirm("Delete “"+h.name+"” and everything you wrote for it? This can't be undone.")){
+        state.habits = state.habits.filter(x=>x.id!==id);
+        removePending(p=>p.habitId===id);
+        save(); closeScr(scr); renderHome();
+      }
+    }
+  });
+  bindClose(scr); mount(scr);
+}
+
+function openAmmo(habitId){
+  const h = habitById(habitId); if(!h) return;
+  let mood=4;
+  const scr = el(`
+    <div class="screen">
+      <header><p class="htitle">Add ammunition</p><button class="icon-btn" data-close>✕</button></header>
+      <div class="body">
+        <p class="hint" style="margin-top:6px;font-size:13.5px">Describe how <b style="color:var(--text)">${esc(h.name.toLowerCase())}</b> leaves you feeling afterward — the crash, the cost, the morning after. Future-you reads this at the door.</p>
+        <label class="field">In your own words</label>
+        <textarea id="mtext" placeholder="The more specific, the more it lands…"></textarea>
+        <label class="field">How bad does it get?</label>
+        <div class="mood-scale" id="mscale">
+          ${[1,2,3,4,5].map(m=>`<button data-m="${m}" class="${m===mood?"sel":""}">${MOODS[m]}<small>${MOODW[m]}</small></button>`).join("")}
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn soft" data-close style="flex:0 0 110px">Cancel</button>
+        <button class="btn primary" id="saveM">Save</button>
+      </div>
+    </div>`);
+  $("#mscale",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-m]"); if(!b)return;
+    mood=+b.dataset.m;
+    scr.querySelectorAll("#mscale button").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");
+  });
+  $("#saveM",scr).addEventListener("click", ()=>{
+    const text=$("#mtext",scr).value.trim();
+    if(!text){ $("#mtext",scr).focus(); return; }
+    h.reflections.push({id:uid(), ts:now(), text, mood, kind:"manual"});
+    save(); closeScr(scr); renderHome();
+    banner("🜂","Loaded. It'll be waiting at the next urge.");
+  });
+  bindClose(scr); mount(scr);
+  setTimeout(()=>$("#mtext",scr).focus(),250);
+}
+
+function openEdit(habitId){
+  const h = habitById(habitId); if(!h) return;
+  let emoji=h.emoji;
+  const scr = el(`
+    <div class="screen">
+      <header><p class="htitle">Edit habit</p><button class="icon-btn" data-close>✕</button></header>
+      <div class="body">
+        <label class="field">Name</label>
+        <input type="text" id="ename" value="${esc(h.name)}" maxlength="60"/>
+        <label class="field">Icon</label>
+        <div class="emoji-picker" id="epick">
+          ${EMOJIS.map(x=>`<button data-e="${x}" class="${x===emoji?"sel":""}">${x}</button>`).join("")}
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn soft" data-close style="flex:0 0 110px">Cancel</button>
+        <button class="btn primary" id="saveE">Save</button>
+      </div>
+    </div>`);
+  $("#epick",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-e]"); if(!b)return;
+    scr.querySelectorAll("#epick button").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel"); emoji=b.dataset.e;
+  });
+  $("#saveE",scr).addEventListener("click", ()=>{
+    const name=$("#ename",scr).value.trim();
+    if(!name){ $("#ename",scr).focus(); return; }
+    h.name=name; h.emoji=emoji; save(); closeScr(scr); renderHome();
+  });
+  bindClose(scr); mount(scr);
+}
+
+function openHistory(id){
+  const h = habitById(id); if(!h) return;
+  const KINDW = {first:"first reflection", raw:"raw aftermath", checkin:"check-in", manual:"reflection"};
+  const items = [
+    ...h.events.map(e=>({ts:e.ts, html:`
+      <div class="log">
+        <div class="lh"><span>${fmtWhen(e.ts)}${e.snoozes?` · after ${e.snoozes} snooze${e.snoozes>1?"s":""}`:""}</span>
+        <span class="tag ${e.type}">${e.type==="resisted"?"RESISTED":"SLIPPED"}</span></div>
+        <div class="lt" style="color:var(--muted)">${e.type==="resisted"?"Faced the moment. Walked away.":"It happened."}${(e.excuses&&e.excuses.length)?` <span style="color:var(--faint)">· said: “${esc(e.excuses[e.excuses.length-1])}”</span>`:""}</div>
+      </div>`})),
+    ...h.reflections.map(r=>({ts:r.ts, html:`
+      <div class="log">
+        <div class="lh"><span>${fmtWhen(r.ts)} · ${KINDW[r.kind]||"reflection"}</span><span class="tag refl">${MOODS[r.mood]} ${MOODW[r.mood].toUpperCase()}</span></div>
+        <div class="lt serif">“${esc(r.text)}”</div>
+      </div>`}))
+  ].sort((a,b)=>b.ts-a.ts);
+  const scr = el(`
+    <div class="screen">
+      <header><p class="htitle">${h.emoji} ${esc(h.name)} · history</p><button class="icon-btn" data-close>✕</button></header>
+      <div class="body">${items.length? items.map(i=>i.html).join("") : `<div class="empty"><div class="big">🗒️</div><b>Nothing yet.</b><p>The first entry writes itself the next time the urge shows up.</p></div>`}</div>
+    </div>`);
+  bindClose(scr); mount(scr);
+}
+
+/* ================= settings / data ================= */
+function openSettings(){
+  const notifState = !("Notification" in window) ? "unsupported" : Notification.permission;
+  const scr = el(`
+    <div class="screen">
+      <header><p class="htitle">Settings & data</p><button class="icon-btn" data-close>✕</button></header>
+      <div class="body">
+        <div class="note-box" style="margin-top:8px">Everything you write lives <b>only in this browser</b>, on this device. No account, no cloud, no one reading it but you.</div>
+        <div class="choice-grid" style="margin-top:14px">
+          <button class="btn soft block" data-s="notif">🔔 Notifications: <span style="color:var(--muted)">${notifState==="granted"?"on":notifState==="unsupported"?"not supported here":"tap to enable"}</span></button>
+          <button class="btn soft block" data-s="export">⬇️ Export backup (JSON)</button>
+          <button class="btn soft block" data-s="import">⬆️ Import backup</button>
+          <button class="btn soft block" data-s="wipe" style="color:var(--ember)">🧨 Erase everything</button>
+        </div>
+        <p class="hint" style="margin-top:16px">Tip: on a phone, use your browser's <b>“Add to Home Screen”</b> — Aftermath becomes a one-tap app right when you need it.</p>
+      </div>
+    </div>`);
+  scr.addEventListener("click", async e=>{
+    const s = e.target.closest("[data-s]")?.dataset.s; if(!s) return;
+    if(s==="notif"){ closeScr(scr); await askNotif(); }
+    else if(s==="export") exportData();
+    else if(s==="import"){ $("#importFile").click(); }
+    else if(s==="wipe"){
+      if(confirm("Erase ALL habits, reflections, and history? There is no undo.")){
+        state = JSON.parse(JSON.stringify(DEFAULT)); save();
+        localStorage.removeItem(OLD_KEY);
+        closeScr(scr); renderHome(); banner("🧨","Clean slate.");
+      }
+    }
+  });
+  bindClose(scr); mount(scr);
+}
+
+function exportData(){
+  const blob = new Blob([JSON.stringify(state,null,2)],{type:"application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "aftermath-backup-"+new Date().toISOString().slice(0,10)+".json";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 3000);
+  banner("⬇️","Backup downloaded. Keep it somewhere safe.");
+}
+$("#importFile").addEventListener("change", e=>{
+  const f = e.target.files[0]; if(!f) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const data = JSON.parse(reader.result);
+      if(!data || !Array.isArray(data.habits)) throw new Error("bad shape");
+      state = Object.assign(JSON.parse(JSON.stringify(DEFAULT)), data);
+      state.habits.forEach(h=>{ h.reflections=h.reflections||[]; h.events=h.events||[]; });
+      state.pending = state.pending||[];
+      save(); renderHome(); banner("⬆️","Backup restored.");
+    }catch(err){ banner("⚠️","That file didn't look like an Aftermath backup."); }
+  };
+  reader.readAsText(f);
+  e.target.value="";
+});
+
+/* ================= notifications ================= */
+async function askNotif(){
+  if(!("Notification" in window)){ banner("🔕","This browser can't do notifications — in-app reminders still work fully."); return; }
+  if(Notification.permission==="granted"){ banner("🔔","Already on. Snoozes will buzz you back."); refreshNotifBtn(); return; }
+  const p = await Notification.requestPermission();
+  refreshNotifBtn();
+  if(p==="granted") banner("🔔","On. When a snooze comes due, I'll tap you on the shoulder — even from a background tab.");
+  else banner("🔕","No problem — reminders still fire in-app the moment you're back.");
+}
+function refreshNotifBtn(){
+  $("#notifBtn").classList.toggle("on", ("Notification" in window) && Notification.permission==="granted");
+}
+function fireNotification(p){
+  const h = habitById(p.habitId); if(!h) return;
+  if(!("Notification" in window) || Notification.permission!=="granted") return;
+  try{
+    const worst = [...h.reflections].sort((a,b)=>b.mood-a.mood)[0];
+    const title = p.kind==="snooze" ? "⏰ It's back — "+h.name : "🕯️ Check-in — "+h.name;
+    const body = p.kind==="snooze"
+      ? (worst ? "“"+worst.text.slice(0,140)+"”" : "Snooze is up. Come face it.")
+      : "How do you feel now, really? Come write it down.";
+    const n = new Notification(title,{body, tag:"aftermath-"+h.id});
+    n.onclick = ()=>{ window.focus(); n.close(); };
+  }catch(e){}
+}
+$("#notifBtn").addEventListener("click", askNotif);
+$("#settingsBtn").addEventListener("click", openSettings);
+
+/* ================= reminder engine ================= */
+function tick(){
+  const due = state.pending.filter(p=>p.dueTs<=now()).sort((a,b)=>a.dueTs-b.dueTs);
+  if(!due.length) return;
+  if($("#modalRoot").children.length) return;           // don't interrupt an open screen; next tick retries
+  const p = due[0];
+  removePending(x=>x.id===p.id); save();
+  if(!habitById(p.habitId)){ renderHome(); return; }    // habit was deleted
+  fireNotification(p);
+  if(p.kind==="snooze") openIntervention(p.habitId, p.count, p.excuses||[]);
+  else openCheckin(p.habitId);
+  renderHome();
+}
+setInterval(tick, 3000);
+document.addEventListener("visibilitychange", ()=>{ if(!document.hidden) tick(); });
+
+/* live countdown chips */
+setInterval(()=>{
+  document.querySelectorAll("[data-due]").forEach(n=>{
+    const left = +n.dataset.due - now();
+    const isCheckin = n.textContent.indexOf("check-in")===0;
+    n.textContent = left<=0 ? "any second now…" : (isCheckin?"check-in in ":"returns in ")+fmtDur(left);
+  });
+}, 1000);
+
+/* ================= plumbing ================= */
+function mount(scr){ $("#modalRoot").appendChild(scr); document.body.style.overflow="hidden"; }
+function closeScr(scr){ scr.remove(); if(!$("#modalRoot").children.length) document.body.style.overflow=""; }
+function bindClose(scr){ scr.addEventListener("click", e=>{ if(e.target.closest("[data-close]")) closeScr(scr); }); }
+document.addEventListener("keydown", e=>{
+  if(e.key==="Escape"){
+    const scrs = $("#modalRoot").children;
+    if(scrs.length) closeScr(scrs[scrs.length-1]);
+  }
+});
+function banner(emoji, html, actLabel, actFn){
+  const root=$("#bannerRoot"); root.innerHTML="";
+  const b = el(`
+    <div class="banner">
+      <div class="b-emoji">${emoji}</div>
+      <div class="b-text">${html}</div>
+      ${actLabel?`<button class="b-act">${actLabel}</button>`:""}
+      <button class="b-close">✕</button>
+    </div>`);
+  if(actLabel) b.querySelector(".b-act").addEventListener("click",()=>{ b.remove(); actFn&&actFn(); });
+  b.querySelector(".b-close").addEventListener("click",()=>b.remove());
+  root.appendChild(b);
+  if(!actLabel) setTimeout(()=>{ if(b.isConnected) b.remove(); }, 5200);
+}
+
+/* ================= init ================= */
+if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost")){
+  navigator.serviceWorker.register("./sw.js").catch(()=>{});
+}
+refreshNotifBtn();
+renderHome();
+setTimeout(tick, 900);   // overdue reminders confront you the moment you open the app
+if(!state.habits.length){
+  setTimeout(()=>banner("👋","Start with the habit that keeps winning — tap <b>＋ Track a habit</b>."), 800);
+}
+</script>
+</body>
+</html>
