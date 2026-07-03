@@ -443,6 +443,39 @@ function topExcuses(h, n=3){
 function pendingFor(id, kind){ return state.pending.find(p=>p.habitId===id && (!kind||p.kind===kind)); }
 function removePending(pred){ state.pending = state.pending.filter(p=>!pred(p)); }
 
+/* varied sampling from the consequence bank: always one heavy hitter, rest weighted by severity */
+function pickQuotes(h, n=3){
+  const pool=[...h.reflections];
+  if(pool.length<=n) return pool.sort((a,b)=>b.mood-a.mood);
+  const worst=[...pool].sort((a,b)=>b.mood-a.mood || b.ts-a.ts);
+  const heavy=worst[Math.floor(Math.random()*2)];
+  const picked=[heavy];
+  const rest=pool.filter(r=>r.id!==heavy.id);
+  while(picked.length<n && rest.length){
+    const total=rest.reduce((a,r)=>a+r.mood*r.mood,0);
+    let roll=Math.random()*total, idx=rest.length-1;
+    for(let i=0;i<rest.length;i++){ roll-=rest[i].mood*rest[i].mood; if(roll<=0){ idx=i; break; } }
+    picked.push(rest.splice(idx,1)[0]);
+  }
+  return picked.sort((a,b)=>b.mood-a.mood);
+}
+
+/* pulse scheduling: recurring "how are you feeling" checks in waking hours (9:00 to 22:00) */
+function nextPulseTs(from){
+  const hrs = state.settings.pulseHours; if(!hrs) return null;
+  let t = from + hrs*3600000;
+  const d = new Date(t);
+  if(d.getHours() < 9){ d.setHours(9,30,0,0); t = d.getTime(); }
+  else if(d.getHours() >= 22){ d.setDate(d.getDate()+1); d.setHours(9,30,0,0); t = d.getTime(); }
+  return t;
+}
+function ensurePulse(){
+  if(!state.settings.pulseHours){ removePending(p=>p.kind==="pulse"); return; }
+  if(!state.pending.some(p=>p.kind==="pulse")){
+    state.pending.push({id:uid(), habitId:null, kind:"pulse", dueTs:nextPulseTs(now()), count:0, excuses:[]});
+  }
+}
+
 /* ================= home ================= */
 function renderHome(){
   const root = $("#home");
@@ -474,7 +507,7 @@ function renderHome(){
 
     const chips = [];
     if(st.days!==null) chips.push(`<span class="chip ${st.label==="slipped today"?"slip":"streak"}">${st.label==="slipped today"?"⚠️":"🔥"} ${st.label}</span>`);
-    chips.push(`<span style="color:var(--faint);font-size:12px">${nRefl} reflection${nRefl!==1?"s":""}</span>`);
+    chips.push(`<span style="color:var(--faint);font-size:12px">🏦 ${nRefl} banked</span>`);
 
     const timerHtml = snz
       ? `<span class="chip timer">⏰ <span data-due="${snz.dueTs}">returns in ${fmtDur(snz.dueTs-now())}</span></span>`
@@ -512,7 +545,7 @@ function renderHome(){
     <div class="stat-row">
       <div class="stat"><div class="n" style="color:var(--mint)">${R}</div><div class="l">Resisted</div></div>
       <div class="stat"><div class="n" style="color:var(--ember)">${S}</div><div class="l">Slipped</div></div>
-      <div class="stat"><div class="n" style="color:var(--indigo)">${F}</div><div class="l">Reflections</div></div>
+      <div class="stat"><div class="n" style="color:var(--indigo)">${F}</div><div class="l">Banked</div></div>
     </div>`));
   root.appendChild(el(`<div class="footlink"><a data-export>Everything stays on this device · export backup</a></div>`));
 }
@@ -620,9 +653,11 @@ function openIntervention(habitId, snoozeCount=0, excuses=[]){
   removePending(p=>p.habitId===habitId && p.kind==="snooze"); save();
 
   const esc_ = ESCALATION[Math.min(snoozeCount, ESCALATION.length-1)];
-  const refl = [...h.reflections].sort((a,b)=> b.mood-a.mood || b.ts-a.ts);
-  const top = refl.slice(0,3);
-  const restCount = refl.length - top.length;
+  const bank = h.reflections;
+  const shown = pickQuotes(h, 3);
+  const shownIds = new Set(shown.map(r=>r.id));
+  const restQuotes = bank.filter(r=>!shownIds.has(r.id)).sort((a,b)=>b.mood-a.mood || b.ts-a.ts);
+  const restCount = restQuotes.length;
   const c = counts(h);
   const lastExcuse = excuses.length ? excuses[excuses.length-1] : null;
 
@@ -632,9 +667,11 @@ function openIntervention(habitId, snoozeCount=0, excuses=[]){
       <div class="who"><span>${MOODS[r.mood]} felt ${MOODW[r.mood]}</span><span>${fmtWhen(r.ts)}</span></div>
     </div>`;
 
-  const quotesHtml = refl.length
-    ? top.map(quoteHtml).join("") + (restCount>0 ? `<button class="showmore" data-more>Show ${restCount} more reflection${restCount>1?"s":""}</button>` : "")
-    : `<div class="note-box center">No reflections yet for this one.<br/><b>Whatever happens next, you'll get to write it down</b>, and next time won't start from zero.</div>`;
+  const quotesHtml = bank.length
+    ? `<div class="section-label" style="margin:0 4px 10px">From your consequence bank · ${bank.length} entr${bank.length===1?"y":"ies"}</div>`
+      + shown.map(quoteHtml).join("")
+      + (restCount>0 ? `<button class="showmore" data-more>Show ${restCount} more from the bank</button>` : "")
+    : `<div class="note-box center">The bank is empty for this one.<br/><b>Whatever happens next, you'll get to write it down</b>, and next time won't start from zero.</div>`;
 
   const excuseHtml = lastExcuse && snoozeCount>0
     ? `<div class="excuse-callout">You told me: <b>“${esc(lastExcuse)}”</b>. That was ${snoozeCount>1?"a few snoozes":"a snooze"} ago. Excuses fade. Read how the other thing felt:</div>`
@@ -673,7 +710,7 @@ function openIntervention(habitId, snoozeCount=0, excuses=[]){
   scr.addEventListener("click", e=>{
     if(e.target.closest("[data-more]")){
       const btn = e.target.closest("[data-more]");
-      const restHtml = refl.slice(3).map(quoteHtml).join("");
+      const restHtml = restQuotes.map(quoteHtml).join("");
       btn.insertAdjacentHTML("beforebegin", restHtml);
       btn.remove();
       return;
@@ -861,6 +898,125 @@ function openCheckin(habitId){
   setTimeout(()=>$("#ctext",scr).focus(),250);
 }
 
+/* ================= pulse check ("how are you feeling?") ================= */
+function openPulse(){
+  let mood=0;
+  const scr = el(`
+    <div class="screen">
+      <header><p class="htitle">🫀 Pulse check</p><button class="icon-btn" data-close>✕</button></header>
+      <div class="body">
+        <div class="pulse-wrap" style="padding-top:24px"><div class="pulse" style="background:radial-gradient(circle at 50% 35%,#232b3f,#161a26);border-color:var(--line-hi)">🫀</div></div>
+        <h2 style="text-align:center;margin:16px 10px 6px;font-size:22px;letter-spacing:-.02em">How are you feeling right now?</h2>
+        <p class="hint center" style="font-size:13.5px;margin:0 18px 16px">Ten seconds of honesty. That's the whole ask.</p>
+        <div class="mood-scale" id="pmood">
+          ${[1,2,3,4,5].map(m=>`<button data-m="${m}">${MOODS[m]}<small>${MOODW[m]}</small></button>`).join("")}
+        </div>
+        <div id="pstep2" style="margin-top:18px"></div>
+      </div>
+    </div>`);
+  $("#pmood",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-m]"); if(!b)return;
+    mood=+b.dataset.m;
+    scr.querySelectorAll("#pmood button").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");
+    const box=$("#pstep2",scr);
+    if(mood<=2){
+      box.innerHTML=`<button class="btn good block" data-good>😌 All good. Carry on.</button>`;
+    } else {
+      box.innerHTML=`
+        <label class="field">Rough. Is a habit behind it?</label>
+        <div class="choice-grid">
+          ${state.habits.map(x=>`<button class="btn soft block" data-h="${x.id}">${x.emoji} ${esc(x.name)}</button>`).join("")}
+          <button class="btn soft block" data-new>＋ Something I don't track yet</button>
+          <button class="btn soft block" data-no style="color:var(--muted)">No, it's something else</button>
+        </div>`;
+    }
+  });
+  scr.addEventListener("click", e=>{
+    if(e.target.closest("[data-good]")){ closeScr(scr); banner("🫀","Noted. Go be alive."); return; }
+    const hb=e.target.closest("[data-h]");
+    if(hb){ const id=hb.dataset.h; closeScr(scr); openTraced(id, mood); return; }
+    if(e.target.closest("[data-new]")){ closeScr(scr); openQuickAdd(mood); return; }
+    if(e.target.closest("[data-no]")){ closeScr(scr); banner("🫀","Fair. Not everything is a habit. Hang in there."); }
+  });
+  bindClose(scr); mount(scr);
+}
+
+/* trace a bad feeling back to a habit and bank the consequence */
+function openTraced(habitId, mood0){
+  const h=habitById(habitId); if(!h) return;
+  let mood=mood0&&mood0>=1?mood0:4;
+  const scr = el(`
+    <div class="screen">
+      <header><p class="htitle">${h.emoji} Trace it: ${esc(h.name)}</p><button class="icon-btn" data-close>✕</button></header>
+      <div class="body">
+        <p class="hint" style="font-size:13.5px;margin-top:8px">So this feeling traces back to <b style="color:var(--text)">${esc(h.name.toLowerCase())}</b>. Say exactly how and why you feel like this right now. It goes straight into the bank, and the next urge will have to argue with it.</p>
+        <label class="field">How and why, in your own words</label>
+        <textarea id="ttext" placeholder="The more specific, the harder it hits next time…"></textarea>
+        <label class="field">How bad is it?</label>
+        <div class="mood-scale" id="mscale">
+          ${[1,2,3,4,5].map(m=>`<button data-m="${m}" class="${m===mood?"sel":""}">${MOODS[m]}<small>${MOODW[m]}</small></button>`).join("")}
+        </div>
+      </div>
+      <div class="footer">
+        <button class="btn soft" data-close style="flex:0 0 110px">Cancel</button>
+        <button class="btn primary" id="saveT">Bank it</button>
+      </div>
+    </div>`);
+  $("#mscale",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-m]"); if(!b)return;
+    mood=+b.dataset.m;
+    scr.querySelectorAll("#mscale button").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel");
+  });
+  $("#saveT",scr).addEventListener("click", ()=>{
+    const text=$("#ttext",scr).value.trim();
+    if(!text){ $("#ttext",scr).focus(); return; }
+    h.reflections.push({id:uid(), ts:now(), text, mood, kind:"traced"});
+    h.events.push({id:uid(), ts:now(), type:"slipped", snoozes:0, excuses:[], traced:true});
+    save(); closeScr(scr); renderHome();
+    banner("🏦","Banked. The next urge will hear about this.");
+  });
+  bindClose(scr); mount(scr);
+  setTimeout(()=>$("#ttext",scr).focus(),250);
+}
+
+/* create a habit on the spot from a pulse check, then bank the feeling */
+function openQuickAdd(mood){
+  let emoji="📱";
+  const scr = el(`
+    <div class="screen">
+      <header><p class="htitle">Name the habit</p><button class="icon-btn" data-close>✕</button></header>
+      <div class="body">
+        <label class="field">What habit is behind this feeling?</label>
+        <input type="text" id="qname" placeholder="e.g. Skipping meals, ordering delivery, staying up…" maxlength="60"/>
+        <label class="field">Give it a face</label>
+        <div class="emoji-picker" id="qpick">
+          ${EMOJIS.map(x=>`<button data-e="${x}" class="${x===emoji?"sel":""}">${x}</button>`).join("")}
+        </div>
+        <p class="hint">It gets tracked from now on, and what you write next becomes the first entry in its consequence bank.</p>
+      </div>
+      <div class="footer">
+        <button class="btn soft" data-close style="flex:0 0 110px">Cancel</button>
+        <button class="btn primary" id="saveQ">Next: bank the feeling</button>
+      </div>
+    </div>`);
+  $("#qpick",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-e]"); if(!b)return;
+    scr.querySelectorAll("#qpick button").forEach(x=>x.classList.remove("sel"));
+    b.classList.add("sel"); emoji=b.dataset.e;
+  });
+  $("#saveQ",scr).addEventListener("click", ()=>{
+    const name=$("#qname",scr).value.trim();
+    if(!name){ $("#qname",scr).focus(); return; }
+    const h={id:uid(), name, emoji, createdAt:now(), reflections:[], events:[]};
+    state.habits.push(h); save(); closeScr(scr); renderHome();
+    openTraced(h.id, mood);
+  });
+  bindClose(scr); mount(scr);
+  setTimeout(()=>$("#qname",scr).focus(),250);
+}
+
 /* ================= win ================= */
 function openWin(h){
   const st = streakInfo(h);
@@ -903,7 +1059,8 @@ function openMenu(id){
           <div class="stat"><div class="n" style="color:var(--indigo)">${rate===null?"·":rate+"%"}</div><div class="l">Held</div></div>
         </div>
         <div class="choice-grid" style="margin-top:10px">
-          <button class="btn soft block" data-m="ammo">🜂 Add ammunition (write a reflection)</button>
+          <button class="btn soft block" data-m="happened">💥 It happened, log it</button>
+          <button class="btn soft block" data-m="ammo">🏦 Add to the consequence bank</button>
           <button class="btn soft block" data-m="history">📜 Full history</button>
           <button class="btn soft block" data-m="edit">✏️ Rename / change icon</button>
           <button class="btn soft block" data-m="delete" style="color:var(--ember)">🗑️ Delete habit</button>
@@ -913,7 +1070,11 @@ function openMenu(id){
     </div>`);
   scr.addEventListener("click", e=>{
     const m = e.target.closest("[data-m]")?.dataset.m; if(!m) return;
-    if(m==="ammo"){ closeScr(scr); openAmmo(id); }
+    if(m==="happened"){
+      h.events.push({id:uid(), ts:now(), type:"slipped", snoozes:0, excuses:[]});
+      save(); closeScr(scr); renderHome(); openAftermath(id);
+    }
+    else if(m==="ammo"){ closeScr(scr); openAmmo(id); }
     else if(m==="history"){ closeScr(scr); openHistory(id); }
     else if(m==="edit"){ closeScr(scr); openEdit(id); }
     else if(m==="delete"){
@@ -932,7 +1093,7 @@ function openAmmo(habitId){
   let mood=4;
   const scr = el(`
     <div class="screen">
-      <header><p class="htitle">Add ammunition</p><button class="icon-btn" data-close>✕</button></header>
+      <header><p class="htitle">🏦 Add to the bank</p><button class="icon-btn" data-close>✕</button></header>
       <div class="body">
         <p class="hint" style="margin-top:6px;font-size:13.5px">Describe how <b style="color:var(--text)">${esc(h.name.toLowerCase())}</b> leaves you feeling afterward: the crash, the cost, the morning after. Future-you reads this at the door.</p>
         <label class="field">In your own words</label>
@@ -998,13 +1159,13 @@ function openEdit(habitId){
 
 function openHistory(id){
   const h = habitById(id); if(!h) return;
-  const KINDW = {first:"first reflection", raw:"raw aftermath", checkin:"check-in", manual:"reflection"};
+  const KINDW = {first:"first entry", raw:"raw aftermath", checkin:"check-in", manual:"banked", traced:"traced from a pulse"};
   const items = [
     ...h.events.map(e=>({ts:e.ts, html:`
       <div class="log">
         <div class="lh"><span>${fmtWhen(e.ts)}${e.snoozes?` · after ${e.snoozes} snooze${e.snoozes>1?"s":""}`:""}</span>
         <span class="tag ${e.type}">${e.type==="resisted"?"RESISTED":"SLIPPED"}</span></div>
-        <div class="lt" style="color:var(--muted)">${e.type==="resisted"?"Faced the moment. Walked away.":"It happened."}${(e.excuses&&e.excuses.length)?` <span style="color:var(--faint)">· said: “${esc(e.excuses[e.excuses.length-1])}”</span>`:""}</div>
+        <div class="lt" style="color:var(--muted)">${e.type==="resisted"?"Faced the moment. Walked away.":(e.traced?"Traced it after the fact.":"It happened.")}${(e.excuses&&e.excuses.length)?` <span style="color:var(--faint)">· said: “${esc(e.excuses[e.excuses.length-1])}”</span>`:""}</div>
       </div>`})),
     ...h.reflections.map(r=>({ts:r.ts, html:`
       <div class="log">
@@ -1028,6 +1189,14 @@ function openSettings(){
       <header><p class="htitle">Settings & data</p><button class="icon-btn" data-close>✕</button></header>
       <div class="body">
         <div class="note-box" style="margin-top:8px">Everything you write lives <b>only in this browser</b>, on this device. No account, no cloud, no one reading it but you.</div>
+        <label class="field">🫀 Pulse checks: the app asks how you're feeling</label>
+        <div class="snooze-grid" id="pulseSel">
+          <button data-p="0">off</button>
+          <button data-p="2">2h</button>
+          <button data-p="4">4h</button>
+          <button data-p="6">6h</button>
+        </div>
+        <p class="hint">Between 9:00 and 22:00. Feeling bad on a pulse? Trace it to a habit and bank the consequence. Fires when the app is open; tap 🔔 for notifications too.</p>
         <div class="choice-grid" style="margin-top:14px">
           <button class="btn soft block" data-s="notif">🔔 Notifications: <span style="color:var(--muted)">${notifState==="granted"?"on":notifState==="unsupported"?"not supported here":"tap to enable"}</span></button>
           <button class="btn soft block" data-s="export">⬇️ Export backup (JSON)</button>
@@ -1037,6 +1206,22 @@ function openSettings(){
         <p class="hint" style="margin-top:16px">Tip: on a phone, use your browser's <b>“Add to Home Screen”</b> and Aftermath becomes a one-tap app right when you need it.</p>
       </div>
     </div>`);
+  const markPulseSel = ()=>{
+    const cur=String(state.settings.pulseHours||0);
+    scr.querySelectorAll("#pulseSel button").forEach(b=>{
+      const on = b.dataset.p===cur;
+      b.classList.toggle("sel",on);
+      b.style.borderColor = on ? "var(--indigo)" : "";
+      b.style.boxShadow = on ? "0 0 0 2px var(--indigo) inset" : "";
+    });
+  };
+  markPulseSel();
+  $("#pulseSel",scr).addEventListener("click", e=>{
+    const b=e.target.closest("[data-p]"); if(!b)return;
+    state.settings.pulseHours=+b.dataset.p;
+    removePending(p=>p.kind==="pulse"); ensurePulse(); save(); markPulseSel();
+    banner("🫀", state.settings.pulseHours ? "Pulse checks every "+state.settings.pulseHours+"h. First one is on the clock." : "Pulse checks off.");
+  });
   scr.addEventListener("click", async e=>{
     const s = e.target.closest("[data-s]")?.dataset.s; if(!s) return;
     if(s==="notif"){ closeScr(scr); await askNotif(); }
@@ -1092,13 +1277,18 @@ function refreshNotifBtn(){
   $("#notifBtn").classList.toggle("on", ("Notification" in window) && Notification.permission==="granted");
 }
 function fireNotification(p){
-  const h = habitById(p.habitId); if(!h) return;
   if(!("Notification" in window) || Notification.permission!=="granted") return;
   try{
-    const worst = [...h.reflections].sort((a,b)=>b.mood-a.mood)[0];
+    if(p.kind==="pulse"){
+      const np = new Notification("🫀 Pulse check",{body:"Got a minute? How are you feeling right now?", tag:"aftermath-pulse"});
+      np.onclick = ()=>{ window.focus(); np.close(); };
+      return;
+    }
+    const h = habitById(p.habitId); if(!h) return;
+    const pick = h.reflections.length ? h.reflections[Math.floor(Math.random()*h.reflections.length)] : null;
     const title = p.kind==="snooze" ? "⏰ It's back: "+h.name : "🕯️ Check-in: "+h.name;
     const body = p.kind==="snooze"
-      ? (worst ? "“"+worst.text.slice(0,140)+"”" : "Snooze is up. Come face it.")
+      ? (pick ? "“"+pick.text.slice(0,140)+"”" : "Snooze is up. Come face it.")
       : "How do you feel now, really? Come write it down.";
     const n = new Notification(title,{body, tag:"aftermath-"+h.id});
     n.onclick = ()=>{ window.focus(); n.close(); };
@@ -1113,7 +1303,12 @@ function tick(){
   if(!due.length) return;
   if($("#modalRoot").children.length) return;           // don't interrupt an open screen; next tick retries
   const p = due[0];
-  removePending(x=>x.id===p.id); save();
+  removePending(x=>x.id===p.id);
+  if(p.kind==="pulse"){
+    ensurePulse();                                      // queue the next one right away
+    save(); fireNotification(p); openPulse(); renderHome(); return;
+  }
+  save();
   if(!habitById(p.habitId)){ renderHome(); return; }    // habit was deleted
   fireNotification(p);
   if(p.kind==="snooze") openIntervention(p.habitId, p.count, p.excuses||[]);
@@ -1161,6 +1356,8 @@ function banner(emoji, html, actLabel, actFn){
 if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost")){
   navigator.serviceWorker.register("./sw.js").catch(()=>{});
 }
+if(state.settings.pulseHours===undefined){ state.settings.pulseHours=4; }   // pulse checks on by default, every 4h
+ensurePulse(); save();
 refreshNotifBtn();
 renderHome();
 setTimeout(tick, 900);   // overdue reminders confront you the moment you open the app
